@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -69,14 +70,23 @@ func (cli *Client) send(cmd string, remote string, code ...string) (replies []Re
 	for _, c := range code {
 		cmdStr := fmt.Sprintf("%s %s\n", cmd, c)
 		_, err = cli.writer.WriteString(cmdStr)
-		cli.writer.Flush()
 		if err != nil {
 			return
 		}
-		replies = append(replies, <-cli.reply)
-	}
 
-	fmt.Println(replies)
+		err = cli.writer.Flush()
+		if err != nil {
+			return
+		}
+
+		reply := <-cli.reply
+		if !reply.Success {
+			err = errors.New(strings.Join(reply.Data, ","))
+			return
+		}
+
+		replies = append(replies, reply)
+	}
 
 	return
 }
@@ -113,15 +123,15 @@ func (cli *Client) read() {
 				continue
 			}
 
-			var size uint64
-			size, err := strconv.ParseUint(sc.Text(), 10, 64)
-			replies := make([]string, size)
+			sizeText := sc.Text()
+			size, err := strconv.ParseUint(sizeText, 10, 64)
 			if err != nil {
 				if cli.Verbose {
-					log.Println("illegal error")
+					log.Println("illegal error:", sizeText)
 				}
 			}
 
+			replies := make([]string, size)
 			for i := uint64(0); i < size && sc.Scan(); i++ {
 				replies[i] = sc.Text()
 			}
@@ -131,7 +141,7 @@ func (cli *Client) read() {
 			cli.reply <- *reply
 		default:
 			if cli.Verbose {
-				log.Println("illegal error")
+				log.Println("illegal error:", line)
 			}
 		}
 	}
@@ -142,16 +152,9 @@ func (cli *Client) read() {
 // List command
 func (cli *Client) List(remote string, code ...string) (replies []string, err error) {
 	reps, err := cli.send("LIST", remote, code...)
-	if err != nil {
-		return
-	}
-
 	replies = make([]string, 0, len(reps))
 	for _, r := range reps {
 		replies = append(replies, r.Data...)
-		if !r.Success {
-			err = errors.New("some errors occurred")
-		}
 	}
 	return
 }
@@ -159,9 +162,6 @@ func (cli *Client) List(remote string, code ...string) (replies []string, err er
 // SendOnce command
 func (cli *Client) SendOnce(remote string, code ...string) (err error) {
 	_, err = cli.send("SEND_ONCE", remote, code...)
-	if err != nil {
-		return
-	}
 	return
 }
 
