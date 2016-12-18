@@ -1,0 +1,35 @@
+box: golang
+
+build:
+  steps:
+    - install-packages:
+        packages: lirc
+
+    - script:
+      name: print version
+      code: |
+        go version
+        lircd -v
+
+    - script:
+      name: launch lircd
+      code: |
+        export LIRC_RUN_PATH=$WERCKER_SOURCE_DIR/lirc/test
+        cp $LIRC_RUN_PATH/lircd.conf /etc/lirc/
+        lircd --pidfile=$LIRC_RUN_PATH/lirc.pid \
+              --output=$LIRC_RUN_PATH/lircd \
+              --allow-simulate \
+              --driver default
+
+    - script:
+      name: set working directory
+      code: |
+        export WERCKER_SOURCE_DIR=$WERCKER_SOURCE_DIR/lirc
+        echo "WERCKER_SOURCE_DIR=$WERCKER_SOURCE_DIR"
+
+    - glide-install
+
+    - script:
+      name: go test
+      code: |
+        go test -v ./...
