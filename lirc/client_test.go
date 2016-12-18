@@ -13,7 +13,7 @@ var (
 )
 
 func TestList(t *testing.T) {
-	client, err := NewClient("test/lircd")
+	client, err := New("test/lircd")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func TestList(t *testing.T) {
 }
 
 func TestSendOnce(t *testing.T) {
-	client, err := NewClient("test/lircd")
+	client, err := New("test/lircd")
 	if err != nil {
 		t.Fatal(err)
 	}

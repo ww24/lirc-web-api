@@ -30,8 +30,8 @@ type Reply struct {
 	Data    []string
 }
 
-// NewClient construct Client instance
-func NewClient(path ...string) (client *Client, err error) {
+// New construct Client instance
+func New(path ...string) (client *Client, err error) {
 	socketPath := socket
 	if len(path) > 0 {
 		socketPath = path[0]
