@@ -21,15 +21,29 @@ build:
               --allow-simulate \
               --driver default
 
-    - script:
-      name: set working directory
-      code: |
-        export WERCKER_SOURCE_DIR=$WERCKER_SOURCE_DIR/lirc
-        echo "WERCKER_SOURCE_DIR=$WERCKER_SOURCE_DIR"
+    - setup-go-workspace:
+      package-dir: github.com/ww24/lirc-web-api
 
     - glide-install
 
     - script:
       name: go test
       code: |
-        go test -v ./...
+        go test -v $(glide nv)
+
+    - script:
+      name: go build
+      code: |
+        go build -o api
+
+    - script:
+      name: copy to output
+      code: |
+        pwd
+        cp "$WERCKER_SOURCE_DIR/api" "$WERCKER_SOURCE_DIR/README.md" "$WERCKER_OUTPUT_DIR"
+
+deploy:
+  steps:
+    - github-create-release:
+      token: $GITHUB_TOKEN
+      tag: v0.1.0
