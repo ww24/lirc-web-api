@@ -181,7 +181,6 @@ func (cli *Client) SendStop(remote string, code string) (err error) {
 func (cli *Client) Close() error {
 	cli.Lock()
 	defer cli.Unlock()
-
-	close(cli.reply)
+	defer close(cli.reply)
 	return cli.conn.Close()
 }
