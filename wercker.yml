@@ -16,15 +16,23 @@ build:
       code: |
         export LIRC_RUN_PATH=$WERCKER_SOURCE_DIR/lirc/test
         cp $LIRC_RUN_PATH/lircd.conf /etc/lirc/
-        lircd --pidfile=$LIRC_RUN_PATH/lirc.pid \
-              --output=$LIRC_RUN_PATH/lircd \
-              --allow-simulate \
+        mkdir -p /var/run/lirc
+        lircd --allow-simulate \
               --driver default
 
     - setup-go-workspace:
       package-dir: github.com/ww24/lirc-web-api
 
-    - glide-install
+    - script:
+      name: glide install
+      code: |
+        curl https://glide.sh/get | sh
+        glide install
+
+    - script:
+      name: go get
+      code: |
+        go get -u github.com/mitchellh/gox
 
     - script:
       name: go test
@@ -32,18 +40,21 @@ build:
         go test -v $(glide nv)
 
     - script:
-      name: go build
+      name: cross compile
       code: |
-        go build -o api
+        gox \
+          -osarch="darwin/amd64 linux/386 linux/amd64 linux/arm windows/386 windows/amd64" \
+          -tags="prod" \
+          -ldflags="-X main.version=$API_VERSION" \
+          -output="$WERCKER_OUTPUT_DIR/api_{{.OS}}_{{.Arch}}"
 
     - script:
       name: copy to output
       code: |
-        pwd
-        cp "$WERCKER_SOURCE_DIR/api" "$WERCKER_SOURCE_DIR/README.md" "$WERCKER_OUTPUT_DIR"
+        cp "$WERCKER_SOURCE_DIR/README.md" "$WERCKER_OUTPUT_DIR"
 
 deploy:
   steps:
     - github-create-release:
       token: $GITHUB_TOKEN
-      tag: v0.1.0
+      tag: $API_VERSION

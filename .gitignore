@@ -3,3 +3,5 @@
 
 # golang
 vendor
+api_*
+api
