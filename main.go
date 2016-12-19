@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/lirc-web-api/lirc"
+	"github.com/ww24/lirc-web-api/lirc"
 )
 
 type response struct {
