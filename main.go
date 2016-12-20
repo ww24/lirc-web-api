@@ -1,9 +1,10 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"net/http"
-	"os"
-	"strings"
+	"strconv"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"
@@ -14,6 +15,9 @@ import (
 var (
 	// -ldflags "-X main.version=$API_VERSION"
 	version string
+
+	isAPIVersion bool
+	apiPort      int
 )
 
 type response struct {
@@ -22,7 +26,18 @@ type response struct {
 	List    []string `json:"list,omitempty"`
 }
 
+func init() {
+	flag.BoolVar(&isAPIVersion, "v", false, "output version")
+	flag.IntVar(&apiPort, "p", 3000, "set API port")
+	flag.Parse()
+}
+
 func main() {
+	if isAPIVersion {
+		fmt.Println(version)
+		return
+	}
+
 	e := echo.New()
 
 	e.Logger.SetLevel(log.INFO)
@@ -97,11 +112,5 @@ func main() {
 		})
 	})
 
-	port := strings.TrimSpace(os.Getenv("LIRC_WEB_API_PORT"))
-	if port == "" {
-		// default port
-		port = "3000"
-	}
-
-	e.Logger.Fatal(e.Start(":" + port))
+	e.Logger.Fatal(e.Start(":" + strconv.Itoa(apiPort)))
 }

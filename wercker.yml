@@ -4,7 +4,7 @@ build:
   steps:
     - script:
       name: set API_VERSION
-      code: export API_VERSION=$(cat VERSION)
+      code: export API_VERSION="v0.1.2"
 
     - install-packages:
         packages: lirc
@@ -60,10 +60,6 @@ build:
 
 deploy:
   steps:
-    - script:
-      name: version
-      code: export API_VERSION=$(cat VERSION)
-
     - github-create-release:
       token: $GITHUB_TOKEN
-      tag: $API_VERSION
+      tag: $(./api_linux_386 -v)
