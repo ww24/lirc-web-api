@@ -21,9 +21,22 @@ var (
 )
 
 type response struct {
+	code    int
 	Status  string   `json:"status"`
-	Message string   `json:"message"`
+	Message string   `json:"message,omitempty"`
 	List    []string `json:"list,omitempty"`
+}
+
+func (res *response) Error() string {
+	return res.Message
+}
+
+func wrapError(err error) error {
+	return &response{
+		code:    http.StatusInternalServerError,
+		Status:  "ng",
+		Message: err.Error(),
+	}
 }
 
 func init() {
@@ -52,10 +65,10 @@ func main() {
 			defer func() {
 				cause := recover()
 				if cause != nil {
+					e.Logger.Errorf("Panic:%v", cause)
 					if err, ok := cause.(error); ok && config.IsDev() {
 						msg = err.Error()
 					}
-					e.Logger.Errorf("Panic:%v", cause)
 					c.JSON(http.StatusInternalServerError, &response{
 						Status:  "ng",
 						Message: msg,
@@ -65,14 +78,17 @@ func main() {
 
 			err := next(c)
 			if err != nil {
-				e.Logger.Errorf("InternalServerError:%s", err)
-				if config.IsDev() {
-					msg = err.Error()
+				if res, ok := err.(*response); ok {
+					if res.Status == "ok" {
+						return c.JSON(res.code, res)
+					}
+
+					e.Logger.Errorf("InternalServerError:%s", res)
+					if config.IsProd() {
+						res.Message = msg
+					}
+					return c.JSON(http.StatusInternalServerError, res)
 				}
-				return c.JSON(http.StatusInternalServerError, &response{
-					Status:  "ng",
-					Message: msg,
-				})
 			}
 			return err
 		}
@@ -81,35 +97,37 @@ func main() {
 	e.GET("/", func(c echo.Context) (err error) {
 		client, err := lirc.New()
 		if err != nil {
-			return
+			return wrapError(err)
 		}
 
 		replies, err := client.List("")
 		if err != nil {
-			return
+			return wrapError(err)
 		}
 
-		return c.JSON(http.StatusOK, &response{
+		return &response{
+			code:   http.StatusOK,
 			Status: "ok",
 			List:   replies,
-		})
+		}
 	})
 
 	// TODO: implement
 	e.POST("/", func(c echo.Context) (err error) {
 		client, err := lirc.New()
 		if err != nil {
-			return
+			return wrapError(err)
 		}
 
 		err = client.SendOnce("aircon", "on")
 		if err != nil {
-			return
+			return wrapError(err)
 		}
 
-		return c.JSON(http.StatusOK, &response{
+		return &response{
+			code:   http.StatusOK,
 			Status: "ok",
-		})
+		}
 	})
 
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(apiPort)))
