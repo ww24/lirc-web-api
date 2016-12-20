@@ -2,6 +2,10 @@ box: golang
 
 build:
   steps:
+    - script:
+      name: set API_VERSION
+      code: export API_VERSION=$(cat VERSION)
+
     - install-packages:
         packages: lirc
 
@@ -10,6 +14,7 @@ build:
       code: |
         go version
         lircd -v
+        echo "API_VERSION=$API_VERSION"
 
     - script:
       name: launch lircd
@@ -55,6 +60,10 @@ build:
 
 deploy:
   steps:
+    - script:
+      name: version
+      code: export API_VERSION=$(cat VERSION)
+
     - github-create-release:
       token: $GITHUB_TOKEN
       tag: $API_VERSION
