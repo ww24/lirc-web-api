@@ -60,6 +60,33 @@ build:
 
 deploy:
   steps:
+    - install-packages:
+        packages: lirc file
+
     - github-create-release:
       token: $GITHUB_TOKEN
       tag: $(./api_linux_386 -v)
+
+    - github-upload-asset:
+      token: $GITHUB_TOKEN
+      file: api_darwin_amd64
+
+    - github-upload-asset:
+      token: $GITHUB_TOKEN
+      file: api_linux_386
+
+    - github-upload-asset:
+      token: $GITHUB_TOKEN
+      file: api_linux_amd64
+
+    - github-upload-asset:
+      token: $GITHUB_TOKEN
+      file: api_linux_arm
+
+    - github-upload-asset:
+      token: $GITHUB_TOKEN
+      file: api_windows_386.exe
+
+    - github-upload-asset:
+      token: $GITHUB_TOKEN
+      file: api_windows_amd64.exe
