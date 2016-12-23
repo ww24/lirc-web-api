@@ -9,31 +9,43 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"
 	"github.com/ww24/lirc-web-api/config"
-	"github.com/ww24/lirc-web-api/lirc"
 )
 
 var (
 	// -ldflags "-X main.version=$API_VERSION"
 	version string
 
-	isAPIVersion bool
-	apiPort      int
+	outputAPIVersion bool
+	apiPort          int
 )
 
 type response struct {
+	code    int
 	Status  string   `json:"status"`
-	Message string   `json:"message"`
-	List    []string `json:"list,omitempty"`
+	Message string   `json:"message,omitempty"`
+	Signals []signal `json:"signals,omitempty"`
+}
+
+func (res *response) Error() string {
+	return res.Message
+}
+
+func wrapError(err error) error {
+	return &response{
+		code:    http.StatusInternalServerError,
+		Status:  "ng",
+		Message: err.Error(),
+	}
 }
 
 func init() {
-	flag.BoolVar(&isAPIVersion, "v", false, "output version")
+	flag.BoolVar(&outputAPIVersion, "v", false, "output version")
 	flag.IntVar(&apiPort, "p", 3000, "set API port")
 	flag.Parse()
 }
 
 func main() {
-	if isAPIVersion {
+	if outputAPIVersion {
 		fmt.Println(version)
 		return
 	}
@@ -44,18 +56,18 @@ func main() {
 	e.Logger.Infof("API version: %s", version)
 	e.Logger.Infof("Running mode: %s", config.Mode)
 
-	// error handling middleware
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	// create api v1 group and set error handling middleware
+	apiv1g := e.Group("/api/v1", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			msg := "unknown"
 
 			defer func() {
 				cause := recover()
 				if cause != nil {
+					e.Logger.Errorf("Panic:%v", cause)
 					if err, ok := cause.(error); ok && config.IsDev() {
 						msg = err.Error()
 					}
-					e.Logger.Errorf("Panic:%v", cause)
 					c.JSON(http.StatusInternalServerError, &response{
 						Status:  "ng",
 						Message: msg,
@@ -65,52 +77,22 @@ func main() {
 
 			err := next(c)
 			if err != nil {
-				e.Logger.Errorf("InternalServerError:%s", err)
-				if config.IsDev() {
-					msg = err.Error()
+				if res, ok := err.(*response); ok {
+					if res.Status == "ok" {
+						return c.JSON(res.code, res)
+					}
+
+					e.Logger.Errorf("InternalServerError:%s", res)
+					if config.IsProd() {
+						res.Message = msg
+					}
+					return c.JSON(http.StatusInternalServerError, res)
 				}
-				return c.JSON(http.StatusInternalServerError, &response{
-					Status:  "ng",
-					Message: msg,
-				})
 			}
 			return err
 		}
 	})
-
-	e.GET("/", func(c echo.Context) (err error) {
-		client, err := lirc.New()
-		if err != nil {
-			return
-		}
-
-		replies, err := client.List("")
-		if err != nil {
-			return
-		}
-
-		return c.JSON(http.StatusOK, &response{
-			Status: "ok",
-			List:   replies,
-		})
-	})
-
-	// TODO: implement
-	e.POST("/", func(c echo.Context) (err error) {
-		client, err := lirc.New()
-		if err != nil {
-			return
-		}
-
-		err = client.SendOnce("aircon", "on")
-		if err != nil {
-			return
-		}
-
-		return c.JSON(http.StatusOK, &response{
-			Status: "ok",
-		})
-	})
+	apiv1(apiv1g)
 
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(apiPort)))
 }
