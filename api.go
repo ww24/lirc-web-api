@@ -1,11 +1,17 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/labstack/echo"
 	"github.com/ww24/lirc-web-api/lirc"
+)
+
+var (
+	// ErrBadSignal because signal not found in lircd.conf
+	ErrBadSignal = errors.New("signal not found")
 )
 
 type signal struct {
@@ -15,7 +21,7 @@ type signal struct {
 
 func apiv1(g *echo.Group) {
 	g.GET("/", func(c echo.Context) (err error) {
-		signals, err := fetchSignals()
+		signals, err := fetchSignals("")
 		if err != nil {
 			return wrapError(err)
 		}
@@ -27,33 +33,63 @@ func apiv1(g *echo.Group) {
 		}
 	})
 
+	g.GET("/:remote", func(c echo.Context) (err error) {
+		signals, err := fetchSignals(c.Param("remote"))
+		if err != nil {
+			return wrapError(err)
+		}
+
+		return &response{
+			code:    http.StatusOK,
+			Status:  "ok",
+			Signals: signals,
+		}
+	})
+
+	g.POST("/:remote/:name", func(c echo.Context) (err error) {
+		sig := &signal{
+			Remote: c.Param("remote"),
+			Name:   c.Param("name"),
+		}
+
+		err = sendSignal(sig)
+		if err != nil {
+			switch err {
+			case ErrBadSignal:
+				return &response{
+					code:    http.StatusBadRequest,
+					Status:  "ng",
+					Message: "invalid signal",
+				}
+			default:
+				return wrapError(err)
+			}
+		}
+
+		return &response{
+			code:   http.StatusOK,
+			Status: "ok",
+		}
+	})
+
 	g.POST("/", func(c echo.Context) (err error) {
 		sig := new(signal)
 		if err = c.Bind(sig); err != nil {
 			return wrapError(err)
 		}
 
-		client, err := lirc.New()
+		err = sendSignal(sig)
 		if err != nil {
-			return wrapError(err)
-		}
-		defer client.Close()
-
-		replies, err := client.List(sig.Remote, sig.Name)
-		if err != nil {
-			return wrapError(err)
-		}
-		if len(replies) == 0 {
-			return &response{
-				code:    http.StatusBadRequest,
-				Status:  "ng",
-				Message: "invalid signal",
+			switch err {
+			case ErrBadSignal:
+				return &response{
+					code:    http.StatusBadRequest,
+					Status:  "ng",
+					Message: "invalid signal",
+				}
+			default:
+				return wrapError(err)
 			}
-		}
-
-		err = client.SendOnce(sig.Remote, sig.Name)
-		if err != nil {
-			return wrapError(err)
 		}
 
 		return &response{
@@ -63,14 +99,14 @@ func apiv1(g *echo.Group) {
 	})
 }
 
-func fetchSignals() (signals []signal, err error) {
+func fetchSignals(remote string) (signals []signal, err error) {
 	client, err := lirc.New()
 	if err != nil {
 		return
 	}
 	defer client.Close()
 
-	remotes, err := client.List("")
+	remotes, err := client.List(remote)
 	if err != nil {
 		return
 	}
@@ -92,6 +128,29 @@ func fetchSignals() (signals []signal, err error) {
 				})
 			}
 		}
+	}
+
+	return
+}
+
+func sendSignal(sig *signal) (err error) {
+	client, err := lirc.New()
+	if err != nil {
+		return
+	}
+	defer client.Close()
+
+	replies, err := client.List(sig.Remote, sig.Name)
+	if err != nil {
+		return
+	}
+	if len(replies) == 0 {
+		return ErrBadSignal
+	}
+
+	err = client.SendOnce(sig.Remote, sig.Name)
+	if err != nil {
+		return
 	}
 
 	return
