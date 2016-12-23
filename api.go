@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo"
 	"github.com/ww24/lirc-web-api/lirc"
@@ -83,10 +84,13 @@ func fetchSignals() (signals []signal, err error) {
 		}
 
 		for _, reply := range replies {
-			signals = append(signals, signal{
-				Remote: remote,
-				Name:   reply,
-			})
+			name := strings.Split(reply, " ")
+			if len(name) == 2 {
+				signals = append(signals, signal{
+					Remote: remote,
+					Name:   name[1],
+				})
+			}
 		}
 	}
 
