@@ -9,22 +9,21 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"
 	"github.com/ww24/lirc-web-api/config"
-	"github.com/ww24/lirc-web-api/lirc"
 )
 
 var (
 	// -ldflags "-X main.version=$API_VERSION"
 	version string
 
-	isAPIVersion bool
-	apiPort      int
+	outputAPIVersion bool
+	apiPort          int
 )
 
 type response struct {
 	code    int
 	Status  string   `json:"status"`
 	Message string   `json:"message,omitempty"`
-	List    []string `json:"list,omitempty"`
+	Signals []signal `json:"signals,omitempty"`
 }
 
 func (res *response) Error() string {
@@ -40,13 +39,13 @@ func wrapError(err error) error {
 }
 
 func init() {
-	flag.BoolVar(&isAPIVersion, "v", false, "output version")
+	flag.BoolVar(&outputAPIVersion, "v", false, "output version")
 	flag.IntVar(&apiPort, "p", 3000, "set API port")
 	flag.Parse()
 }
 
 func main() {
-	if isAPIVersion {
+	if outputAPIVersion {
 		fmt.Println(version)
 		return
 	}
@@ -57,8 +56,8 @@ func main() {
 	e.Logger.Infof("API version: %s", version)
 	e.Logger.Infof("Running mode: %s", config.Mode)
 
-	// error handling middleware
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	// create api v1 group and set error handling middleware
+	apiv1g := e.Group("/api/v1", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			msg := "unknown"
 
@@ -93,42 +92,7 @@ func main() {
 			return err
 		}
 	})
-
-	e.GET("/", func(c echo.Context) (err error) {
-		client, err := lirc.New()
-		if err != nil {
-			return wrapError(err)
-		}
-
-		replies, err := client.List("")
-		if err != nil {
-			return wrapError(err)
-		}
-
-		return &response{
-			code:   http.StatusOK,
-			Status: "ok",
-			List:   replies,
-		}
-	})
-
-	// TODO: implement
-	e.POST("/", func(c echo.Context) (err error) {
-		client, err := lirc.New()
-		if err != nil {
-			return wrapError(err)
-		}
-
-		err = client.SendOnce("aircon", "on")
-		if err != nil {
-			return wrapError(err)
-		}
-
-		return &response{
-			code:   http.StatusOK,
-			Status: "ok",
-		}
-	})
+	apiv1(apiv1g)
 
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(apiPort)))
 }

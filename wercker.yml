@@ -4,7 +4,7 @@ build:
   steps:
     - script:
       name: set API_VERSION
-      code: export API_VERSION="v0.1.3"
+      code: export API_VERSION="v0.2.0"
 
     - install-packages:
         packages: lirc
