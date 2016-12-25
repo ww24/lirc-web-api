@@ -6,8 +6,20 @@ build:
       name: set API_VERSION
       code: export API_VERSION="v0.2.2"
 
-    - install-packages:
-        packages: lirc
+    - script:
+      name: install lirc
+      code: |
+        apt -qq update
+        apt -qq install build-essential autoconf libtool libxml2-dev xsltproc python3
+        cd /tmp
+        git clone git://git.code.sf.net/p/lirc/git lirc
+        cd lirc
+        git checkout lirc-0_9_2a
+        ./autogen.sh
+        ./configure
+        make
+        make install
+        ldconfig
 
     - script:
       name: print version
@@ -20,10 +32,11 @@ build:
       name: launch lircd
       code: |
         export LIRC_RUN_PATH=$WERCKER_SOURCE_DIR/lirc/test
-        cp $LIRC_RUN_PATH/lircd.conf /etc/lirc/
+        cp $LIRC_RUN_PATH/lircd.conf /usr/local/etc/lirc/lircd.conf.d/lighting.conf
         mkdir -p /var/run/lirc
-        lircd --allow-simulate \
-              --driver default
+        lircd --logfile=$LIRC_RUN_PATH/lirc.log \
+              --allow-simulate \
+              --driver simsend
 
     - setup-go-workspace:
       package-dir: github.com/ww24/lirc-web-api
@@ -43,6 +56,11 @@ build:
       name: go test
       code: |
         go test -v $(glide nv)
+
+    - script:
+      name: show lircd log
+      code: |
+        cat $LIRC_RUN_PATH/lirc.log
 
     - script:
       name: cross compile

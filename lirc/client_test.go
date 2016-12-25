@@ -2,6 +2,8 @@ package lirc
 
 import "testing"
 
+const lircVersion = "0.9.2a"
+
 var (
 	buttons = []string{
 		"0000000000000001 up",
@@ -66,7 +68,23 @@ func TestSendOnce(t *testing.T) {
 	defer client.Close()
 
 	err = client.SendOnce("lighting", "on_off")
-	if err.Error() != "hardware does not support sending" {
-		t.Fatal("err: expected: hardware does not support sending, actual:", err.Error())
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestVersion(t *testing.T) {
+	client, err := New("/var/run/lirc/lircd")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	version, err := client.Version()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if version != lircVersion {
+		t.Fatalf("version: expected: %s, actual: %s", lircVersion, version)
 	}
 }
