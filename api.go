@@ -14,11 +14,6 @@ var (
 	ErrBadSignal = errors.New("signal not found")
 )
 
-type signal struct {
-	Remote string `json:"remote"`
-	Name   string `json:"name"`
-}
-
 func apiv1(g *echo.Group) {
 	g.GET("/", func(c echo.Context) (err error) {
 		signals, err := fetchSignals("")

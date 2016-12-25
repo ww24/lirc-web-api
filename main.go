@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"
 	"github.com/ww24/lirc-web-api/config"
+	"github.com/ww24/lirc-web-api/lirc"
 )
 
 var (
@@ -18,17 +19,6 @@ var (
 	outputAPIVersion bool
 	apiPort          int
 )
-
-type response struct {
-	code    int
-	Status  string   `json:"status"`
-	Message string   `json:"message,omitempty"`
-	Signals []signal `json:"signals,omitempty"`
-}
-
-func (res *response) Error() string {
-	return res.Message
-}
 
 func wrapError(err error) error {
 	return &response{
@@ -55,6 +45,32 @@ func main() {
 	e.Logger.SetLevel(log.INFO)
 	e.Logger.Infof("API version: %s", version)
 	e.Logger.Infof("Running mode: %s", config.Mode)
+
+	e.GET("/status", func(c echo.Context) error {
+		client, err := lirc.New()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, &status{
+				Status:  "ng",
+				Message: err.Error(),
+			})
+		}
+		defer client.Close()
+
+		lircdVersion, err := client.Version()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, &status{
+				Status:  "ng",
+				Message: err.Error(),
+			})
+		}
+
+		return c.JSON(http.StatusOK, &status{
+			Status:       "ok",
+			Message:      "LIRC Web API works",
+			Version:      version,
+			LIRCDVersion: lircdVersion,
+		})
+	})
 
 	// create api v1 group and set error handling middleware
 	apiv1g := e.Group("/api/v1", func(next echo.HandlerFunc) echo.HandlerFunc {
