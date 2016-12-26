@@ -50,7 +50,7 @@ func New(path ...string) (client *Client, err error) {
 	client = &Client{
 		conn:   conn,
 		writer: bufio.NewWriter(conn),
-		reply:  make(chan Reply, 1),
+		reply:  make(chan Reply),
 	}
 
 	go client.read()
