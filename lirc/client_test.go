@@ -26,10 +26,10 @@ func TestList(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(reps) != 1 {
-		t.Fatal("len(reps): expected: 1, actual:", len(reps))
+		t.Fatalf("len(reps): expected: %d, actual: %d", 1, len(reps))
 	}
 	if reps[0] != "lighting" {
-		t.Fatal("reps[0]: expected: lighting, actual:", reps[0])
+		t.Fatalf("reps[0]: expected: %s, actual: %s", "lighting", reps[0])
 	}
 
 	reps, err = client.List("lighting")
@@ -37,7 +37,7 @@ func TestList(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(reps) != 5 {
-		t.Fatal("len(reps): expected: 5, actual:", len(reps))
+		t.Fatalf("len(reps): expected: %d, actual: %d", 5, len(reps))
 	}
 	for i, rep := range reps {
 		if rep != buttons[i] {
@@ -50,7 +50,7 @@ func TestList(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(reps) != 2 {
-		t.Fatal("len(reps): expected: 2, actual:", len(reps))
+		t.Fatalf("len(reps): expected: %d, actual: %d", 2, len(reps))
 	}
 	if reps[0] != buttons[0] {
 		t.Fatalf("reps[0]: expected: %s, actual: %s", buttons[0], reps[0])
