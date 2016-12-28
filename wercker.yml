@@ -2,9 +2,6 @@ box: golang
 
 build:
   steps:
-    - shellcheck:
-        files: install.sh
-
     - script:
       name: set API_VERSION
       code: export API_VERSION="v0.2.6"
@@ -78,6 +75,9 @@ build:
       name: copy to output
       code: |
         cp "$WERCKER_SOURCE_DIR/README.md" "$WERCKER_OUTPUT_DIR"
+
+    - shellcheck:
+      files: install.sh
 
 deploy:
   steps:
