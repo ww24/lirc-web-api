@@ -2,9 +2,12 @@ box: golang
 
 build:
   steps:
+    - shellcheck:
+        files: install.sh
+
     - script:
       name: set API_VERSION
-      code: export API_VERSION="v0.2.5"
+      code: export API_VERSION="v0.2.6"
 
     - script:
       name: install lirc
