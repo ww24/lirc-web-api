@@ -13,8 +13,12 @@ OS=$(uname | tr '[:upper:]' '[:lower:]')
 if [ "$OS" = "windows" ]; then
   EXT=".exe"
 fi
+
 VERSION=$(curl -sL https://raw.githubusercontent.com/ww24/lirc-web-api/master/wercker.yml | grep 'API_VERSION="v' | awk -F\" '{print $2}')
-curl -Lo /tmp/lirc-web-api "https://github.com/ww24/lirc-web-api/releases/download/${VERSION}/api_${OS}_${ARCH}${EXT}"
+
+DOWNLOAD_URL="https://github.com/ww24/lirc-web-api/releases/download/${VERSION}/api_${OS}_${ARCH}${EXT}"
+echo "Downloading $DOWNLOAD_URL"
+curl -Lo /tmp/lirc-web-api "$DOWNLOAD_URL"
 chmod +x /tmp/lirc-web-api
 
 if [ "$OS" = "linux" ] && hash systemctl; then
