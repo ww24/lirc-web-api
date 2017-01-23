@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,19 +18,30 @@ var (
 
 // Signal .
 type Signal struct {
-	Remote string `json:"remote"`
-	Name   string `json:"name"`
+	Remote   string   `json:"remote"`
+	Name     string   `json:"name"`
+	Duration duration `json:"duration,omitempty"`
+}
+
+type duration time.Duration
+
+func (d *duration) MarshalJSON() ([]byte, error) {
+	du := time.Duration(*d) / time.Millisecond
+	return []byte(strconv.FormatInt(int64(du), 10)), nil
+}
+
+func (d *duration) UnmarshalJSON(data []byte) error {
+	du, err := strconv.ParseInt(string(data), 10, 64)
+	if err != nil {
+		return err
+	}
+	*d = duration(time.Duration(du) * time.Millisecond)
+	return nil
 }
 
 // SendSignalParam .
 type SendSignalParam struct {
 	*Signal
-	Duration int64 `json:"duration,omitempty"`
-}
-
-// GetDuration convert int64[msec] to time.Duration
-func (s *SendSignalParam) GetDuration() time.Duration {
-	return time.Millisecond * time.Duration(s.Duration)
 }
 
 // FetchSignals .
@@ -84,13 +96,13 @@ func SendSignal(s *SendSignalParam) (err error) {
 	}
 
 	if s.Duration > 0 {
-		log.Printf("send signal:%s:%s\tduration:%s\n", s.Remote, s.Name, s.GetDuration())
+		log.Printf("send signal:%s:%s\tduration:%s\n", s.Remote, s.Name, time.Duration(s.Duration))
 		err = client.SendStart(s.Remote, s.Name)
 		if err != nil {
 			return
 		}
 		defer client.SendStop(s.Remote, s.Name)
-		time.Sleep(s.GetDuration())
+		time.Sleep(time.Duration(s.Duration))
 	} else {
 		log.Printf("send signal:%s:%s\n", s.Remote, s.Name)
 		err = client.SendOnce(s.Remote, s.Name)

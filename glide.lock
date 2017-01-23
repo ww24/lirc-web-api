@@ -1,5 +1,5 @@
-hash: 7ce2af9d10b2361fab5ac9024b9b1ec60ab9a85c4ca299b8092a7aa91c80ca7a
-updated: 2017-02-21T22:52:11.080387224+09:00
+hash: de9d9b9381200ced965ff762fa8ab22b950a9b1a94c041aae64dbdfd58092251
+updated: 2017-02-24T00:01:52.876005784+09:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 9ed569b5d1ac936e6494082958d63a6aa4fff99a
@@ -7,6 +7,8 @@ imports:
   version: bd3c8e81be01eef76d4b503f5e687d2d1354d2d9
   subpackages:
   - gomock
+- name: github.com/golang/snappy
+  version: 553a641470496b2327abcac10b36396bd98e45c9
 - name: github.com/labstack/echo
   version: 8d504c1b699c757b267255c53b3e5219f9974abc
   subpackages:
@@ -24,8 +26,25 @@ imports:
   version: 30a891c33c7cde7b02a981314b4228ec99380cca
 - name: github.com/syndtr/goleveldb
   version: 23851d93a2292dcc56e71a18ec9e0624d84a0f65
+  subpackages:
+  - leveldb
+  - leveldb/cache
+  - leveldb/comparer
+  - leveldb/errors
+  - leveldb/filter
+  - leveldb/iterator
+  - leveldb/journal
+  - leveldb/memdb
+  - leveldb/opt
+  - leveldb/storage
+  - leveldb/table
+  - leveldb/util
 - name: github.com/tylerb/graceful
   version: 4df1190835320af7076dfcf27b3d071fd3612caf
+- name: github.com/ugorji/go
+  version: c88ee250d0221a57af388746f5cf03768c21d6e2
+  subpackages:
+  - codec
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/crypto
