@@ -110,5 +110,7 @@ func main() {
 	})
 	apiv1(apiv1g)
 
+	e.Static("/", "./frontend")
+
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(apiPort)))
 }
