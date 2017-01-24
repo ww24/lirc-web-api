@@ -19,7 +19,7 @@ fetch(`${ENDPOINT}/`).then(res => {
 function send(item) {
   console.log(item);
   // TODO: 送信前処理
-  fetch(`${ENDPOINT}/${item.remote}/${item.name}`, {
+  return fetch(`${ENDPOINT}/${item.remote}/${item.name}`, {
     method: "POST"
   }).then(res => {
     console.log(res);
@@ -32,5 +32,5 @@ function send(item) {
     console.log(err);
     // TODO: 適切なエラーハンドリング
     alert(err);
-  })
+  });
 }
