@@ -15,7 +15,20 @@ var (
 )
 
 func apiv1(g *echo.Group) {
-	g.GET("/", func(c echo.Context) (err error) {
+	g.GET("", func(c echo.Context) (err error) {
+		signals, err := fetchSignals("")
+		if err != nil {
+			return wrapError(err)
+		}
+
+		return &response{
+			code:    http.StatusOK,
+			Status:  "ok",
+			Signals: signals,
+		}
+	})
+
+	g.GET("/list", func(c echo.Context) (err error) {
 		signals, err := fetchSignals("")
 		if err != nil {
 			return wrapError(err)
@@ -67,7 +80,7 @@ func apiv1(g *echo.Group) {
 		}
 	})
 
-	g.POST("/", func(c echo.Context) (err error) {
+	g.POST("", func(c echo.Context) (err error) {
 		sig := new(signal)
 		if err = c.Bind(sig); err != nil {
 			return wrapError(err)

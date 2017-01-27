@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/ww24/lirc-web-api/config"
 	"github.com/ww24/lirc-web-api/lirc"
@@ -45,6 +46,8 @@ func main() {
 	e.Logger.SetLevel(log.INFO)
 	e.Logger.Infof("API version: %s", version)
 	e.Logger.Infof("Running mode: %s", config.Mode)
+
+	e.Pre(middleware.RemoveTrailingSlash())
 
 	e.GET("/status", func(c echo.Context) error {
 		client, err := lirc.New()
