@@ -28,7 +28,7 @@ func apiv1(g *echo.Group) {
 		}
 	})
 
-	g.GET("/list", func(c echo.Context) (err error) {
+	g.GET("/signals", func(c echo.Context) (err error) {
 		signals, err := fetchSignals("")
 		if err != nil {
 			return wrapError(err)

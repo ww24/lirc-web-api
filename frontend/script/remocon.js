@@ -4,7 +4,7 @@
 
 const ENDPOINT = "/api/v1";
 
-fetch(`${ENDPOINT}`).then(res => {
+fetch(`${ENDPOINT}/signals`).then(res => {
   console.log(res);
   return res.json();
 }).then(data => {
