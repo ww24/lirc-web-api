@@ -18,7 +18,6 @@ fetch(`${ENDPOINT}/signals`).then(res => {
 
 function send(item) {
   console.log(item);
-  // TODO: 送信前処理
   return fetch(`${ENDPOINT}/${item.remote}/${item.name}`, {
     method: "POST"
   }).then(res => {
@@ -26,8 +25,6 @@ function send(item) {
     return res.json();
   }).then(data => {
     console.log(data);
-    // TODO: 送信後処理
-    // alert(`sent signal: ${item.remote}:${item.name}`);
   }).catch(err => {
     console.log(err);
     // TODO: 適切なエラーハンドリング
