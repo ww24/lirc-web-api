@@ -23,9 +23,12 @@ chmod +x /tmp/lirc-web-api
 
 if [ "$OS" = "linux" ] && hash systemctl; then
   INSTALL_DIR=/usr/local/bin
-  mkdir -p $INSTALL_DIR
+  SHARE_DIR=/usr/local/share
+  mkdir -p $INSTALL_DIR $SHARE_DIR
   INSTALL_PATH="$INSTALL_DIR/lirc-web-api"
+  DOCUMENT_ROOT="$SHARE_DIR/lirc-web-frontend"
   sudo mv /tmp/lirc-web-api $INSTALL_PATH
+  sudo mv /tmp/lirc-web-frontend $SHARE_DIR
 
   cat <<EOF | sudo tee /lib/systemd/system/lirc-web-api.service
 [Unit]
@@ -34,7 +37,7 @@ After=network.target network-online.target
 
 [Service]
 Type=simple
-ExecStart=$INSTALL_PATH
+ExecStart=$INSTALL_PATH -port 3000 -frontend $DOCUMENT_ROOT
 ExecReload=/bin/kill -HUP \$MAINPID
 KillMode=control-group
 Restart=on-failure

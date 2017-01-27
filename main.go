@@ -19,6 +19,7 @@ var (
 
 	outputAPIVersion bool
 	apiPort          int
+	frontendPath     string
 )
 
 func wrapError(err error) error {
@@ -32,6 +33,7 @@ func wrapError(err error) error {
 func init() {
 	flag.BoolVar(&outputAPIVersion, "v", false, "output version")
 	flag.IntVar(&apiPort, "p", 3000, "set API port")
+	flag.StringVar(&frontendPath, "f", "./frontend", "frontend path")
 	flag.Parse()
 }
 
@@ -113,7 +115,7 @@ func main() {
 	})
 	apiv1(apiv1g)
 
-	e.Static("/", "./frontend")
+	e.Static("/", frontendPath)
 
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(apiPort)))
 }
