@@ -5,6 +5,11 @@ type signal struct {
 	Name   string `json:"name"`
 }
 
+type send struct {
+	*signal
+	Duration int64 `json:"duration,omitempty"`
+}
+
 type status struct {
 	Status       string `json:"status"`
 	Message      string `json:"message"`

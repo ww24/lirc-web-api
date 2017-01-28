@@ -28,7 +28,7 @@ func TestSendSignal(t *testing.T) {
 		Remote: "lighting",
 		Name:   "up",
 	}
-	err := sendSignal(sig)
+	err := sendSignal(&send{signal: sig})
 	if err != nil {
 		t.Fatal(err)
 	}
