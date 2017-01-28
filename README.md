@@ -55,9 +55,11 @@ OR
 curl -XPOST http://localhost:3000/api/v1 -H"Content-Type:application/json" -d'{
   "remote": "lighting",
   "name": "up",
-  "duration": 5
+  "duration": 5000
 }'
 ```
+
+Send a signal for a time if set "duration[ms]".
 
 ### Web Frontend
 Open `http://localhost:3000/` in Google Chrome or Android Chrome.
