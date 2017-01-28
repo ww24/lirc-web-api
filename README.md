@@ -41,12 +41,22 @@ curl http://localhost:3000/api/v1/signals
 
 ### Send
 ```
-curl -XPOST http://localhost:3000/status/aircon/on
+curl -XPOST http://localhost:3000/api/v1/aircon/on
 ```
 
 ```
 remote --> aircon
 name --> on
+```
+
+OR
+
+```
+curl -XPOST http://localhost:3000/api/v1 -H"Content-Type:application/json" -d'{
+  "remote": "lighting",
+  "name": "up",
+  "duration": 5
+}'
 ```
 
 ### Web Frontend
