@@ -74,6 +74,9 @@ build:
           -ldflags="-X main.version=$API_VERSION" \
           -output="build/api_{{.OS}}_{{.Arch}}"
 
+    - script:
+      name: create tarball
+      code: |
         cd build
         mv ../frontend .
 
@@ -90,6 +93,7 @@ build:
     - script:
       name: copy to output
       code: |
+        cp "$WERCKER_SOURCE_DIR/build/api_linux_386" "$WERCKER_OUTPUT_DIR"
         cp "$WERCKER_SOURCE_DIR/README.md" "$WERCKER_OUTPUT_DIR"
 
     - shellcheck:
@@ -106,24 +110,24 @@ deploy:
 
     - github-upload-asset:
       token: $GITHUB_TOKEN
-      file: api_darwin_amd64
+      file: api_darwin_amd64.tar.gz
 
     - github-upload-asset:
       token: $GITHUB_TOKEN
-      file: api_linux_386
+      file: api_linux_386.tar.gz
 
     - github-upload-asset:
       token: $GITHUB_TOKEN
-      file: api_linux_amd64
+      file: api_linux_amd64.tar.gz
 
     - github-upload-asset:
       token: $GITHUB_TOKEN
-      file: api_linux_arm
+      file: api_linux_arm.tar.gz
 
     - github-upload-asset:
       token: $GITHUB_TOKEN
-      file: api_windows_386.exe
+      file: api_windows_386.tar.gz
 
     - github-upload-asset:
       token: $GITHUB_TOKEN
-      file: api_windows_amd64.exe
+      file: api_windows_amd64.tar.gz
