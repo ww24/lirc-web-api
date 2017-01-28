@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/ww24/lirc-web-api/config"
 	"github.com/ww24/lirc-web-api/lirc"
@@ -18,6 +19,7 @@ var (
 
 	outputAPIVersion bool
 	apiPort          int
+	frontendPath     string
 )
 
 func wrapError(err error) error {
@@ -31,6 +33,7 @@ func wrapError(err error) error {
 func init() {
 	flag.BoolVar(&outputAPIVersion, "v", false, "output version")
 	flag.IntVar(&apiPort, "p", 3000, "set API port")
+	flag.StringVar(&frontendPath, "f", "./frontend", "frontend path")
 	flag.Parse()
 }
 
@@ -45,6 +48,8 @@ func main() {
 	e.Logger.SetLevel(log.INFO)
 	e.Logger.Infof("API version: %s", version)
 	e.Logger.Infof("Running mode: %s", config.Mode)
+
+	e.Pre(middleware.RemoveTrailingSlash())
 
 	e.GET("/status", func(c echo.Context) error {
 		client, err := lirc.New()
@@ -109,6 +114,8 @@ func main() {
 		}
 	})
 	apiv1(apiv1g)
+
+	e.Static("/", frontendPath)
 
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(apiPort)))
 }
