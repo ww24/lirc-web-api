@@ -19,18 +19,21 @@ VERSION=$(curl -sL https://raw.githubusercontent.com/ww24/lirc-web-api/master/we
 DOWNLOAD_URL="https://github.com/ww24/lirc-web-api/releases/download/${VERSION}/api_${OS}_${ARCH}.tar.gz"
 echo "Downloading $DOWNLOAD_URL"
 curl -Lo /tmp/lirc-web-api.tar.gz "$DOWNLOAD_URL"
-mkdir -p /tmp/licr-web-api
-tar xzvf /tmp/lirc-web-api.tar.gz -C /tmp/lirc-web-api
+INSTALL_TMP_DIR=/tmp/lirc-web-api
+mkdir -p $INSTALL_TMP_DIR
+tar xzvf /tmp/lirc-web-api.tar.gz -C $INSTALL_TMP_DIR
+rm -f /tmp/lirc-web-api.tar.gz
 chmod +x "/tmp/lirc-web-api/api_${OS}_${ARCH}${EXT}"
 
 if [ "$OS" = "linux" ] && hash systemctl; then
   install_dir=/usr/local/bin
-  share_dir=/usr/local/share
-  mkdir -p $install_dir $share_dir
+  share_dir=/usr/local/share/lirc-web-api
+  sudo mkdir -p $install_dir $share_dir
   install_path="$install_dir/lirc-web-api"
-  document_root="$share_dir/lirc-web-frontend"
-  sudo mv /tmp/lirc-web-api/lirc-web-api $install_path
-  sudo mv /tmp/lirc-web-api/frontend $share_dir
+  document_root="$share_dir/frontend"
+  sudo mv "$INSTALL_TMP_DIR/api_${OS}_${ARCH}${EXT}" $install_path
+  sudo rsync -ru $INSTALL_TMP_DIR/frontend $share_dir
+  rm -rf $INSTALL_TMP_DIR
 
   cat <<EOF | sudo tee /lib/systemd/system/lirc-web-api.service
 [Unit]
@@ -49,11 +52,13 @@ WantedBy=multi-user.target
 Alias=mackerel-agent.service
 EOF
 
+  sudo systemctl daemon-reload
   sudo systemctl enable lirc-web-api
-  sudo systemctl start lirc-web-api
+  sudo systemctl restart lirc-web-api
   sudo systemctl status lirc-web-api
 else
-  mv /tmp/lirc-web-api .
+  rsync -ru $INSTALL_TMP_DIR .
+  rm -r $INSTALL_TMP_DIR
   echo "installed at $(pwd)/lirc-web-api $("./lirc-web-api/api_${OS}_${ARCH}${EXT}" -v)"
   echo "Usage: ./lirc-web-api/api_${OS}_${ARCH}${EXT} -p 3000 -f ./lirc-web-api/frontend"
 fi
