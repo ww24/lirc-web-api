@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo"
 	"github.com/ww24/lirc-web-api/lirc"
@@ -60,7 +61,7 @@ func apiv1(g *echo.Group) {
 			Name:   c.Param("name"),
 		}
 
-		err = sendSignal(sig)
+		err = sendSignal(&send{signal: sig})
 		if err != nil {
 			switch err {
 			case ErrBadSignal:
@@ -81,12 +82,12 @@ func apiv1(g *echo.Group) {
 	})
 
 	g.POST("", func(c echo.Context) (err error) {
-		sig := new(signal)
-		if err = c.Bind(sig); err != nil {
+		sendParam := new(send)
+		if err = c.Bind(sendParam); err != nil {
 			return wrapError(err)
 		}
 
-		err = sendSignal(sig)
+		err = sendSignal(sendParam)
 		if err != nil {
 			switch err {
 			case ErrBadSignal:
@@ -141,14 +142,14 @@ func fetchSignals(remote string) (signals []signal, err error) {
 	return
 }
 
-func sendSignal(sig *signal) (err error) {
+func sendSignal(s *send) (err error) {
 	client, err := lirc.New()
 	if err != nil {
 		return
 	}
 	defer client.Close()
 
-	replies, err := client.List(sig.Remote, sig.Name)
+	replies, err := client.List(s.Remote, s.Name)
 	if err != nil {
 		return
 	}
@@ -156,9 +157,18 @@ func sendSignal(sig *signal) (err error) {
 		return ErrBadSignal
 	}
 
-	err = client.SendOnce(sig.Remote, sig.Name)
-	if err != nil {
-		return
+	if s.Duration > 0 {
+		err = client.SendStart(s.Remote, s.Name)
+		if err != nil {
+			return
+		}
+		defer client.SendStop(s.Remote, s.Name)
+		time.Sleep(time.Duration(s.Duration))
+	} else {
+		err = client.SendOnce(s.Remote, s.Name)
+		if err != nil {
+			return
+		}
 	}
 
 	return
