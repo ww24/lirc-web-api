@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -158,13 +159,15 @@ func sendSignal(s *send) (err error) {
 	}
 
 	if s.Duration > 0 {
+		log.Printf("send signal:%s:%s\tduration:%s\n", s.Remote, s.Name, s.GetDuration())
 		err = client.SendStart(s.Remote, s.Name)
 		if err != nil {
 			return
 		}
 		defer client.SendStop(s.Remote, s.Name)
-		time.Sleep(time.Duration(s.Duration))
+		time.Sleep(s.GetDuration())
 	} else {
+		log.Printf("send signal:%s:%s\n", s.Remote, s.Name)
 		err = client.SendOnce(s.Remote, s.Name)
 		if err != nil {
 			return
