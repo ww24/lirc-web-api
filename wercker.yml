@@ -97,7 +97,7 @@ build:
         cp "$WERCKER_SOURCE_DIR/README.md" "$WERCKER_OUTPUT_DIR"
 
     - shellcheck:
-      files: install.sh
+      files: install.sh uninstall.sh
 
 deploy:
   steps:
