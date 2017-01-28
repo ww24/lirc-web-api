@@ -29,8 +29,8 @@ if [ "$OS" = "linux" ] && hash systemctl; then
   mkdir -p $install_dir $share_dir
   install_path="$install_dir/lirc-web-api"
   document_root="$share_dir/lirc-web-frontend"
-  sudo mv /tmp/lirc-web-api $install_path
-  sudo mv /tmp/lirc-web-frontend $share_dir
+  sudo mv /tmp/lirc-web-api/lirc-web-api $install_path
+  sudo mv /tmp/lirc-web-api/frontend $share_dir
 
   cat <<EOF | sudo tee /lib/systemd/system/lirc-web-api.service
 [Unit]
