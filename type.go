@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 type signal struct {
 	Remote string `json:"remote"`
 	Name   string `json:"name"`
@@ -8,6 +10,10 @@ type signal struct {
 type send struct {
 	*signal
 	Duration int64 `json:"duration,omitempty"`
+}
+
+func (s *send) GetDuration() time.Duration {
+	return time.Millisecond * time.Duration(s.Duration)
 }
 
 type status struct {
