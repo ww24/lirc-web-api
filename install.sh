@@ -16,19 +16,21 @@ fi
 
 VERSION=$(curl -sL https://raw.githubusercontent.com/ww24/lirc-web-api/master/wercker.yml | grep 'API_VERSION="v' | awk -F\" '{print $2}')
 
-DOWNLOAD_URL="https://github.com/ww24/lirc-web-api/releases/download/${VERSION}/api_${OS}_${ARCH}${EXT}"
+DOWNLOAD_URL="https://github.com/ww24/lirc-web-api/releases/download/${VERSION}/api_${OS}_${ARCH}.tar.gz"
 echo "Downloading $DOWNLOAD_URL"
-curl -Lo /tmp/lirc-web-api "$DOWNLOAD_URL"
-chmod +x /tmp/lirc-web-api
+curl -Lo /tmp/lirc-web-api.tar.gz "$DOWNLOAD_URL"
+mkdir -p /tmp/licr-web-api
+tar xzvf /tmp/lirc-web-api.tar.gz -C /tmp/lirc-web-api
+chmod +x "/tmp/lirc-web-api/api_${OS}_${ARCH}${EXT}"
 
 if [ "$OS" = "linux" ] && hash systemctl; then
-  INSTALL_DIR=/usr/local/bin
-  SHARE_DIR=/usr/local/share
-  mkdir -p $INSTALL_DIR $SHARE_DIR
-  INSTALL_PATH="$INSTALL_DIR/lirc-web-api"
-  DOCUMENT_ROOT="$SHARE_DIR/lirc-web-frontend"
-  sudo mv /tmp/lirc-web-api $INSTALL_PATH
-  sudo mv /tmp/lirc-web-frontend $SHARE_DIR
+  install_dir=/usr/local/bin
+  share_dir=/usr/local/share
+  mkdir -p $install_dir $share_dir
+  install_path="$install_dir/lirc-web-api"
+  document_root="$share_dir/lirc-web-frontend"
+  sudo mv /tmp/lirc-web-api $install_path
+  sudo mv /tmp/lirc-web-frontend $share_dir
 
   cat <<EOF | sudo tee /lib/systemd/system/lirc-web-api.service
 [Unit]
@@ -37,7 +39,7 @@ After=network.target network-online.target
 
 [Service]
 Type=simple
-ExecStart=$INSTALL_PATH -port 3000 -frontend $DOCUMENT_ROOT
+ExecStart=$install_path -p 3000 -f $document_root
 ExecReload=/bin/kill -HUP \$MAINPID
 KillMode=control-group
 Restart=on-failure
@@ -52,5 +54,6 @@ EOF
   sudo systemctl status lirc-web-api
 else
   mv /tmp/lirc-web-api .
-  echo "installed at $(pwd)/lirc-web-api $(./lirc-web-api -v)"
+  echo "installed at $(pwd)/lirc-web-api $("./lirc-web-api/api_${OS}_${ARCH}${EXT}" -v)"
+  echo "Usage: ./lirc-web-api/api_${OS}_${ARCH}${EXT} -p 3000 -f ./lirc-web-api/frontend"
 fi

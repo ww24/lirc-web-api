@@ -65,11 +65,27 @@ build:
     - script:
       name: cross compile
       code: |
+        target="darwin/amd64 linux/386 linux/amd64 linux/arm windows/386 windows/amd64"
+        mkdir -p build
+
         gox \
-          -osarch="darwin/amd64 linux/386 linux/amd64 linux/arm windows/386 windows/amd64" \
+          -osarch="$target" \
           -tags="prod" \
           -ldflags="-X main.version=$API_VERSION" \
-          -output="$WERCKER_OUTPUT_DIR/api_{{.OS}}_{{.Arch}}"
+          -output="build/api_{{.OS}}_{{.Arch}}"
+
+        cd build
+        mv ../frontend .
+
+        for t in $(echo $target); do
+          osarch=($(echo $t | tr '/' ' '))
+          ext=
+          tarball="$WERCKER_OUTPUT_DIR/api_${osarch[0]}_${osarch[1]}.tar.gz"
+          if [ "${osarch[0]}" = "windows" ]; then
+            ext=".exe"
+          fi
+          tar czvf $tarball "api_${osarch[0]}_${osarch[1]}${ext}" frontend
+        done
 
     - script:
       name: copy to output
