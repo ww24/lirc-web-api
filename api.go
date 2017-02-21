@@ -13,7 +13,8 @@ import (
 
 var (
 	// ErrBadSignal because signal not found in lircd.conf
-	ErrBadSignal = errors.New("signal not found")
+	ErrBadSignal   = errors.New("signal not found")
+	newLIRCService = lirc.New
 )
 
 func apiv1(g *echo.Group) {
@@ -110,7 +111,7 @@ func apiv1(g *echo.Group) {
 }
 
 func fetchSignals(remote string) (signals []signal, err error) {
-	client, err := lirc.New()
+	client, err := newLIRCService()
 	if err != nil {
 		return
 	}
@@ -144,7 +145,7 @@ func fetchSignals(remote string) (signals []signal, err error) {
 }
 
 func sendSignal(s *send) (err error) {
-	client, err := lirc.New()
+	client, err := newLIRCService()
 	if err != nil {
 		return
 	}
