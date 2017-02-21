@@ -10,9 +10,6 @@ case $ARCH in
 i386) ARCH="386";;
 esac
 OS=$(uname | tr '[:upper:]' '[:lower:]')
-if [ "$OS" = "windows" ]; then
-  EXT=".exe"
-fi
 
 VERSION=$(curl -sL https://raw.githubusercontent.com/ww24/lirc-web-api/master/wercker.yml | grep 'API_VERSION="v' | awk -F\" '{print $2}')
 
@@ -23,7 +20,7 @@ INSTALL_TMP_DIR=/tmp/lirc-web-api
 mkdir -p $INSTALL_TMP_DIR
 tar xzvf /tmp/lirc-web-api.tar.gz -C $INSTALL_TMP_DIR
 rm -f /tmp/lirc-web-api.tar.gz
-chmod +x "/tmp/lirc-web-api/api_${OS}_${ARCH}${EXT}"
+chmod +x "/tmp/lirc-web-api/api_${OS}_${ARCH}"
 
 if [ "$OS" = "linux" ] && hash systemctl; then
   install_dir=/usr/local/bin
@@ -31,7 +28,7 @@ if [ "$OS" = "linux" ] && hash systemctl; then
   sudo mkdir -p $install_dir $share_dir
   install_path="$install_dir/lirc-web-api"
   document_root="$share_dir/frontend"
-  sudo mv "$INSTALL_TMP_DIR/api_${OS}_${ARCH}${EXT}" $install_path
+  sudo mv "$INSTALL_TMP_DIR/api_${OS}_${ARCH}" $install_path
   sudo rsync -ru $INSTALL_TMP_DIR/frontend $share_dir
   rm -rf $INSTALL_TMP_DIR
 
@@ -59,6 +56,6 @@ EOF
 else
   rsync -ru $INSTALL_TMP_DIR .
   rm -r $INSTALL_TMP_DIR
-  echo "installed at $(pwd)/lirc-web-api $("./lirc-web-api/api_${OS}_${ARCH}${EXT}" -v)"
-  echo "Usage: ./lirc-web-api/api_${OS}_${ARCH}${EXT} -p 3000 -f ./lirc-web-api/frontend"
+  echo "installed at $(pwd)/lirc-web-api $("./lirc-web-api/api_${OS}_${ARCH}" -v)"
+  echo "Usage: ./lirc-web-api/api_${OS}_${ARCH} -p 3000 -f ./lirc-web-api/frontend"
 fi
