@@ -1,8 +1,12 @@
-hash: fbf73c40a2eeff15d0ccda258575ae25f9166aa9e466009446455e774782887f
-updated: 2016-12-20T02:26:31.766628044+09:00
+hash: 7ce2af9d10b2361fab5ac9024b9b1ec60ab9a85c4ca299b8092a7aa91c80ca7a
+updated: 2017-02-21T22:52:11.080387224+09:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 9ed569b5d1ac936e6494082958d63a6aa4fff99a
+- name: github.com/golang/mock
+  version: bd3c8e81be01eef76d4b503f5e687d2d1354d2d9
+  subpackages:
+  - gomock
 - name: github.com/labstack/echo
   version: 8d504c1b699c757b267255c53b3e5219f9974abc
   subpackages:
@@ -18,6 +22,8 @@ imports:
   version: d228849504861217f796da67fae4f6e347643f15
 - name: github.com/mattn/go-isatty
   version: 30a891c33c7cde7b02a981314b4228ec99380cca
+- name: github.com/syndtr/goleveldb
+  version: 23851d93a2292dcc56e71a18ec9e0624d84a0f65
 - name: github.com/tylerb/graceful
   version: 4df1190835320af7076dfcf27b3d071fd3612caf
 - name: github.com/valyala/fasttemplate
