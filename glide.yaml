@@ -1,8 +1,0 @@
-package: github.com/ww24/lirc-web-api
-import:
-- package: github.com/labstack/echo
-  version: ^3.0.3
-- package: github.com/syndtr/goleveldb
-- package: github.com/golang/mock
-  subpackages:
-  - gomock
