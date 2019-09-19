@@ -1,0 +1,54 @@
+name: Go
+on: [push]
+jobs:
+  build:
+    name: Build by go ${{ matrix.go }}
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        go: ["1.12", "1.13"]
+    steps:
+      - name: Set up Go 1.12
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go }}
+        id: go
+
+      - name: Install lirc
+        run: |
+          sudo apt -qq update && sudo apt -qq install \
+            autoconf libtool libxml2-dev xsltproc python3-dev python3-setuptools
+          cd /tmp
+          git clone git://git.code.sf.net/p/lirc/git -b lirc-0.10.1 --depth 1 lirc
+          cd lirc
+          ./autogen.sh
+          ./configure
+          make
+          sudo make install
+          sudo ldconfig
+          sudo mkdir -p /var/run/lirc
+          lircd -v
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
+
+      - name: Launch lircd
+        run: |
+          export LIRC_RUN_PATH=/home/runner/work/lirc-web-api/lirc-web-api/lirc/test
+          sudo cp $LIRC_RUN_PATH/lircd.conf \
+            /usr/local/etc/lirc/lircd.conf.d/lighting.conf
+          sudo lircd --logfile=$LIRC_RUN_PATH/lirc.log \
+            --allow-simulate \
+            --driver simsend
+
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+
+      - name: Build
+        run: |
+          go build -v .
+
+      - name: Test
+        run: |
+          go test ./...
