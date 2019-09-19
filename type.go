@@ -1,20 +1,6 @@
 package main
 
-import "time"
-
-type signal struct {
-	Remote string `json:"remote"`
-	Name   string `json:"name"`
-}
-
-type send struct {
-	*signal
-	Duration int64 `json:"duration,omitempty"`
-}
-
-func (s *send) GetDuration() time.Duration {
-	return time.Millisecond * time.Duration(s.Duration)
-}
+import "github.com/ww24/lirc-web-api/service"
 
 type status struct {
 	Status       string `json:"status"`
@@ -25,9 +11,9 @@ type status struct {
 
 type response struct {
 	code    int
-	Status  string   `json:"status"`
-	Message string   `json:"message,omitempty"`
-	Signals []signal `json:"signals,omitempty"`
+	Status  string           `json:"status"`
+	Message string           `json:"message,omitempty"`
+	Signals []service.Signal `json:"signals,omitempty"`
 }
 
 func (res *response) Error() string {

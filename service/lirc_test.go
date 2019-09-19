@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"testing"
@@ -39,7 +39,7 @@ func TestFetchSignals(t *testing.T) {
 	}
 
 	{
-		signals, err := fetchSignals("")
+		signals, err := FetchSignals("")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -87,11 +87,11 @@ func TestSendSignal(t *testing.T) {
 	}
 
 	{
-		sig := &signal{
+		sig := &Signal{
 			Remote: "lighting",
 			Name:   "up",
 		}
-		err := sendSignal(&send{signal: sig})
+		err := SendSignal(&SendSignalParam{Signal: sig})
 		if err != nil {
 			t.Fatal(err)
 		}
